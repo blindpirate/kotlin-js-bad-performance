@@ -203,49 +203,6 @@ data class RawTileAnimationFrame(
 )
 
 
-class JSCompressedGameMap {
-    var id: String = ""
-    var size: GridSize = GridSize(0, 0)
-    var tileSize: PixelSize = PixelSize(0, 0)
-    var constantPool: Array<Any> = emptyArray()
-    var tiles: Array<Int> = emptyArray()
-
-    fun toKotlinCompressedGameMap(): CompressedGameMap {
-        val constantPool:List<ConstantPoolEntry> = constantPool.map {
-            val type = ConstantPoolType.ofIndex(it.asDynamic().type as Int)
-            val valueJson = kotlin.js.JSON.stringify(it.asDynamic().value)
-            val value = Json.decodeFromString(type.serializer, valueJson)
-            type.of(value)
-        }
-        return CompressedGameMap(
-            id,
-            size,
-            tileSize,
-            constantPool,
-            tiles.toList()
-        )
-    }
-}
-
-fun fromJSON(json: String): CompressedGameMap {
-    val jsCompressedGameMap: dynamic = parse(json)
-
-    val constantPool:List<ConstantPoolEntry> = (jsCompressedGameMap.constantPool as Array<dynamic>).map {
-        val type = ConstantPoolType.ofIndex(it.type as Int)
-        val valueJson = kotlin.js.JSON.stringify(it.value)
-        val value = Json.decodeFromString(type.serializer, valueJson)
-        type.of(value)
-    }
-    return CompressedGameMap(
-        jsCompressedGameMap.id as String,
-        GridSize(jsCompressedGameMap.size.width as Int, jsCompressedGameMap.size.height as Int),
-        PixelSize(jsCompressedGameMap.tileSize.width as Int, jsCompressedGameMap.tileSize.height as Int),
-        constantPool,
-        (jsCompressedGameMap.tiles as Array<Int>).toList()
-    )
-}
-
-
 @Serializable
 data class CompressedGameMap(
     override val id: String,
